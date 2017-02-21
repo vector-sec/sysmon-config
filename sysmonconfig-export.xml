@@ -23,82 +23,15 @@
 -->
 
 <Sysmon schemaversion="3.30">
-	<HashAlgorithms>*</HashAlgorithms>
+	<HashAlgorithms>md5,sha256</HashAlgorithms>
 	<EventFiltering>
 
 	<!--SYSMON EVENT ID 1 : PROCESS CREATION -->
 		<!--DATA: UtcTime, ProcessGuid, ProcessID, Image, CommandLine, CurrentDirectory, User, LogonGuid, LogonId, TerminalSessionId, IntegrityLevel, Hashes, ParentProcessGuid, ParentProcessId, ParentImage, ParentCommandLine-->
 		<ProcessCreate onmatch="exclude">
-		<!--COMMENT:	All process launched will be included in log, except for what matches a rule below. It's best to be as specific as possible, to
+		<!--COMMENT:	All process launched will be included in log, except for what mactches a rule below. It's best to be as specific as possible, to
 				avoid user-mode executables immitating other process names to avoid logging, or if malware drops files in an existing directory.
 				Ultimately, you must weigh CPU time checking many detailed rules, against the risk of malware exploiting the blindness created.-->
-			<!--SECTION: Microsoft Windows-->
-			<IntegrityLevel condition="is">AppContainer</IntegrityLevel> <!--Microsoft:Windows: Don't care about sandboxed processes-->
-			<Image condition="is">C:\Windows\System32\audiodg.exe</Image> <!--Microsoft:Windows: Launched constantly-->
-			<Image condition="is">C:\Windows\System32\conhost.exe</Image> <!--Microsoft:Windows: Command line interface host process-->
-			<Image condition="is">C:\Windows\System32\wbem\WmiApSrv.exe</Image> <!--Microsoft:Windows: WMI performance adpater host process-->
-			<ParentImage condition="is">C:\Windows\system32\SearchIndexer.exe</ParentImage> <!--Microsoft:Windows:Search: Launches many uninteresting sub-processes-->
-			<CommandLine condition="begin with">C:\Windows\system32\DllHost.exe /Processid</CommandLine> <!--Microsoft:Windows-->
-			<ParentCommandLine condition="begin with">C:\Windows\system32\svchost.exe -k DcomLaunch</ParentCommandLine> <!--Microsoft:Windows-->
-			<ParentCommandLine condition="begin with">%%SystemRoot%%\system32\csrss.exe ObjectDirectory=\Windows</ParentCommandLine> <!--Microsoft:Windows:CommandShell: Triggered when programs use the command shell, but without attribution-->
-			<CommandLine condition="is">C:\windows\System32\svchost.exe -k WerSvcGroup</CommandLine> <!--Microsoft:WindowsErrorReporting-->
-			<Image condition="begin with">C:\Program Files\Windows Defender</Image> <!--Microsoft:Windows:Defender in Win10-->
-			<Image condition="end with">C:\Windows\System32\CompatTelRunner.exe</Image> <!--Microsoft:Windows:Customer Experience Improvement-->
-			<!--SECTION: Microsoft dotNet-->
-			<Image condition="is">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorsvw.exe</Image> <!--Microsoft:DotNet-->
-			<ParentImage condition="is">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorsvw.exe</ParentImage> <!--Microsoft:DotNet-->
-			<Image condition="is">C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscorsvw.exe</Image> <!--Microsoft:DotNet-->
-			<ParentImage condition="is">C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscorsvw.exe</ParentImage> <!--Microsoft:DotNet-->
-			<!--SECTION: Microsoft Office-->
-			<Image condition="is">C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeC2RClient.exe</Image> <!--Microsoft:Office: Background process-->
-			<ParentImage condition="is">C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeC2RClient.exe</ParentImage> <!--Microsoft:Office: Background process-->
-			<ParentImage condition="end with">C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe</ParentImage> <!--Microsoft:Office: Background process-->
-			<Image condition="is">C:\Program Files\Common Files\Microsoft Shared\OfficeSoftwareProtectionPlatform\OSPPSVC.EXE</Image> <!--Microsoft:Office: Background process-->
-			<!--SECTION: Google-->
-			<CommandLine condition="begin with">"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --type=</CommandLine> <!--Google:Chrome: massive command-line arguments-->
-			<CommandLine condition="begin with">"C:\Program Files\Google\Chrome\Application\chrome.exe" --type=</CommandLine> <!--Google:Chrome: massive command-line arguments-->
-			<ParentImage condition="begin with">C:\Program Files (x86)\Google\Update\</ParentImage> <!--Google:Chrome: Updater-->
-			<!-- SECTION: Firefox -->
-			<CommandLine condition="begin with">"C:\Program Files\Mozilla Firefox\plugin-container.exe" --channel</CommandLine> <!-- Mozilla:Firefox massive command-line arguments || Contributor @Darkbat91 -->
-			<CommandLine condition="begin with">"C:\Program Files (x86)\Mozilla Firefox\plugin-container.exe" --channel</CommandLine> <!-- Mozilla:Firefox massive command-line arguments || Contributor @Darkbat91 -->
-			<!--SECTION: Adobe-->
-			<CommandLine condition="contains">AcroRd32.exe" /CR </CommandLine> <!--Adobe:AcrobatReader: Uninsteresting sandbox subprocess-->
-			<CommandLine condition="contains">AcroRd32.exe" --channel=</CommandLine> <!--Adobe:AcrobatReader: Uninteresting sandbox subprocess-->
-			<Image condition="end with">C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\AcroCEF\AcroCEF.exe</Image>
-			<ParentImage condition="end with">C:\Program Files (x86)\Common Files\Adobe\AdobeGCClient\AGSService.exe</ParentImage>
-			<Image condition="end with">C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroCEF\RdrCEF.exe</Image> <!--Adobe:AcrobatReader: Uninteresting sandbox subprocess-->
-			<Image condition="end with">C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\LogTransport2.exe</Image>
-			<!--SECTION: Adobe Flash-->
-			<Image condition="end with">C:\Windows\SysWOW64\Macromed\Flash\FlashPlayerUpdateService.exe</Image> <!--Adobe:Flash: Properly hardened updater, not a risk-->
-			<!--SECTION: Adobe self-update-->
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\AdobeARM.exe</Image> <!--Adobe:Updater: Properly hardened updater, not a risk-->
-			<ParentImage condition="end with">C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\AdobeARM.exe</ParentImage> <!--Adobe:Updater: Properly hardened updater, not a risk-->
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\armsvc.exe</Image> <!--Adobe:Updater: Properly hardened updater, not a risk-->
-			<!--SECTION: Adobe supporting processes-->
-			<Image condition="end with">C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\AdobeCollabSync.exe</Image>
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\Adobe Desktop Common\HEX\Adobe CEF Helper.exe</Image>
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\AdobeGCClient\AdobeGCClient.exe</Image> <!--Adobe:Creative Cloud-->
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\OOBE\PDApp\P6\adobe_licutil.exe</Image> <!--Adobe:License utility-->
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\OOBE\PDApp\P7\adobe_licutil.exe</Image> <!--Adobe:License utility-->
-			<ParentImage condition="end with">C:\Program Files (x86)\Common Files\Adobe\OOBE\PDApp\P7\adobe_licutil.exe</ParentImage> <!--Adobe:License utility-->
-			<Image condition="end with">C:\Program Files (x86)\Common Files\Adobe\OOBE\PDApp\UWA\updaterstartuputility.exe</Image>
-			<ParentImage condition="is">C:\Program Files (x86)\Common Files\Adobe\OOBE\PDApp\UWA\updaterstartuputility.exe</ParentImage>
-			<!--SECTION: Adobe Creative Cloud-->
-			<ParentImage condition="end with">C:\Program Files (x86)\Adobe\Adobe Creative Cloud\CCXProcess\CCXProcess.exe</ParentImage>
-			<ParentImage condition="end with">C:\Program Files (x86)\Adobe\Adobe Creative Cloud\CoreSync\CoreSync.exe</ParentImage>
-			<ParentImage condition="end with">C:\Program Files (x86)\Adobe\Adobe Creative Cloud\ACC\Creative Cloud.exe</ParentImage>
-			<Image condition="end with">C:\Program Files (x86)\Adobe\Adobe Creative Cloud\ACC\Creative Cloud.exe</Image>
-			<!--SECTION: Drivers-->
-			<Image condition="begin with">C:\Program Files\NVIDIA Corporation\Display\</Image> <!--Nvidia:Driver: routine actions-->
-			<Image condition="begin with">C:\Program Files\Realtek\</Image> <!--Realtek:Driver: routine actions-->
-			<ParentImage condition="end with">C:\Program Files\Realtek\Audio\HDA\RtkAudioService64.exe</ParentImage> <!--Realtek:Driver: routine actions-->
-			<ParentImage condition="end with">C:\Program Files\DellTPad\HidMonitorSvc.exe</ParentImage>
-			<CommandLine condition="begin with">"C:\Program Files\DellTPad\ApMsgFwd.exe" -s{</CommandLine>
-			<!--SECTION: Dropbox-->
-			<Image condition="end with">C:\Program Files (x86)\Dropbox\Update\DropboxUpdate.exe</Image> <!--Dropbox:Updater: Lots of command-line arguments-->
-			<ParentImage condition="end with">C:\Program Files (x86)\Dropbox\Update\DropboxUpdate.exe</ParentImage>
-			<!--SECTION: Dell-->
-			<!-- <ParentImage condition="image">C:\Program Files (x86)\Dell\CommandUpdate\InvColPC.exe</ParentImage> --> <!--Dell:CommandUpdate: Detection process-->
 		</ProcessCreate>
 
 	<!--SYSMON EVENT ID 2 : FILE CREATION TIME RETROACTIVELY CHANGED IN THE FILESYSTEM -->
@@ -130,6 +63,15 @@
 			<Image condition="image">notepad.exe</Image> <!--Microsoft:Windows: [ https://blog.cobaltstrike.com/2013/08/08/why-is-notepad-exe-connecting-to-the-internet/ ] -->
 			<Image condition="image">regsvr32.exe</Image> <!--Microsoft:Windows: [ https://subt0x10.blogspot.com/2016/04/bypass-application-whitelisting-script.html ] -->
 			<Image condition="image">msiexec.exe</Image> <!--Microsoft:Windows: Can install from http:// paths | Credit: @vector-sec -->
+			<!--Begin personal additions-->
+			<Image condition="image">mshta.exe</Image>
+			<Image condition="image">python.exe</Image>
+			<Image condition="image">psexecsvc.exe</Image>
+			<Image condition="image">java.exe</Image>
+			<Image condition="image">installutil.exe</Image>
+			<Image condition="image">certutil.exe</Image>
+			<Image condition="image">PsExec.exe</Image>
+			<!--End personal additions-->
 		</NetworkConnect>
 		<NetworkConnect onmatch="exclude">
 			<Image condition="image">Spotify.exe</Image> <!--Spotify-->
@@ -138,6 +80,10 @@
 			<DestinationHostname condition="end with">microsoft.com</DestinationHostname> <!--Microsoft:Update delivery-->
 			<DestinationHostname condition="end with">microsoft.com.akadns.net</DestinationHostname> <!--Microsoft:Update delivery-->
 			<DestinationHostname condition="end with">microsoft.com.nsatc.net</DestinationHostname> <!--Microsoft:Update delivery-->
+			<!--Begin personal additions-->
+			<Image condition="image">slack.exe</Image> <!--Slack-->
+			<Image condition="image">OneDriveStandaloneUpdater.exe</Image> <!--Microsoft:OneDrive-->
+			<!--End personal additions-->
 		</NetworkConnect>
 
 	<!--SYSMON EVENT ID 4 : RESERVED FOR SYSMON STATUS MESSAGES, THIS LINE IS INCLUDED FOR DOCUMENTATION PURPOSES ONLY -->
@@ -148,7 +94,6 @@
 		<!--DATA: UtcTime, ProcessGuid, ProcessId, Image-->
 		<ProcessTerminate onmatch="include">
 		<!--COMMENT:	Useful data in building infection timelines.-->
-			<Image condition="begin with">C:\Users</Image> <!--Process terminations by user binaries-->
 		</ProcessTerminate>
 
 	<!--SYSMON EVENT ID 6 : DRIVER LOADED INTO KERNEL -->
@@ -159,6 +104,9 @@
 			<Signature condition="contains">microsoft</Signature> <!--Exclude signed Microsoft drivers-->
 			<Signature condition="contains">windows</Signature> <!--Exclude signed Microsoft drivers-->
 			<Signature condition="begin with">Intel </Signature> <!--Exclude signed Intel drivers-->
+			<!--Begin personal additions-->
+			<Signature condition="is">McAfee</Signature> <!--Exclude signed McAfee drivers-->
+			<!--End personal additions-->
 		</DriverLoad>
 
 	<!--SYSMON EVENT ID 7 : DLL (IMAGE) LOADED BY PROCESS -->
@@ -193,6 +141,9 @@
 			<SourceImage condition="is">C:\Windows\System32\audiodg.exe</SourceImage>
 			<StartModule condition="is">C:\windows\system32\kernel32.dll</StartModule>
 			<TargetImage condition="end with">Google\Chrome\Application\chrome.exe</TargetImage>
+			<!--Begin personal additions-->
+			<SourceImage condition="contains">FireSvc.exe</SourceImage>
+			<!--End personal additions-->
 		</CreateRemoteThread>
 
 	<!--SYSMON EVENT ID 9 : RAW DISK ACCESS -->
@@ -210,7 +161,25 @@
 		<!--COMMENT:	Monitor for processes accessing other process' memory. This can be valuable, but can cause massive event glut.
 				Disabled by default since including even one entry here activates this component. Reward/performance decision.
 				Encourage you to experiment with this feature yourself.-->
+			<SourceImage condition="image">winword.exe</SourceImage> <!-- Hancitor process hollowing -->
+			<SourceImage condition="image">excel.exe</SourceImage> <!-- Hancitor process hollowing -->
+			<SourceImage condition="image">mspub.exe</SourceImage> <!-- Hancitor process hollowing -->
+			<SourceImage condition="image">msbuild.exe</SourceImage> <!-- Hancitor process hollowing -->
+			<SourceImage condition="image">powerpnt.exe</SourceImage> <!-- Hancitor process hollowing -->
 		<!--FUTURE WORK:	Include mimikatz-specific events.-->
+		</ProcessAccess>
+		<ProcessAccess onmatch="exclude">
+		<!--COMMENT:	Monitor for processes accessing other process' memory. This can be valuable, but can cause massive event glut.
+				Disabled by default since including even one entry here activates this component. Reward/performance decision.
+				Encourage you to experiment with this feature yourself.-->
+			<TargetImage condition="image">winword.exe</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">excel.exe</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">mspub.exe</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">C:\WINDOWS\Explorer.EXE</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">powerpnt.exe</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">lync.exe</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">outlook.exe</TargetImage> <!-- Hancitor process hollowing -->
+			<TargetImage condition="image">OneDrive.exe</TargetImage> <!-- Hancitor process hollowing -->
 		</ProcessAccess>
 
 	<!--SYSMON EVENT ID 11 : FILE CREATED -->
@@ -399,6 +368,9 @@
 			<TargetFilename condition="end with">.vbs</TargetFilename> <!--VisualBasicScripting files-->
 			<TargetFilename condition="end with">.hta</TargetFilename> <!--Scripting-->
 			<TargetFilename condition="end with">.bat</TargetFilename> <!--Batch scripting-->
+			<!--Begin personal additions-->
+			<TargetFilename condition="end with">.vbe</TargetFilename> <!--VisualBasicScripting files-->
+			<!--End personal additions-->
 		</FileCreateStreamHash>
 
 	<!--SYSMON EVENT ID 16 : SYSMON CONFIGURATION CHANGE, THIS LINE IS INCLUDED FOR DOCUMENTATION PURPOSES ONLY [ SYSMON 6.00+ ] -->
