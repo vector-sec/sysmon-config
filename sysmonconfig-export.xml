@@ -92,7 +92,7 @@
 
 	<!--SYSMON EVENT ID 5 : PROCESS ENDED -->
 		<!--DATA: UtcTime, ProcessGuid, ProcessId, Image-->
-		<ProcessTerminate onmatch="include">
+		<ProcessTerminate onmatch="exclude">
 		<!--COMMENT:	Useful data in building infection timelines.-->
 		</ProcessTerminate>
 
